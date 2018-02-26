@@ -22,7 +22,6 @@ function startVideo(){
 function findFace() {
   let camera = new cv.VideoCapture(0);
   if (camera){
-    const FPS = 30;
     let cnvs = document.getElementById('video-flow');
     processVideo(camera, cnvs);
   }else{
@@ -31,6 +30,7 @@ function findFace() {
 };
 
 function processVideo(camera, cnvs) {
+    const FPS = 30;
     try {
         if (!streaming) {
           clearTimeout(id);
