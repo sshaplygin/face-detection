@@ -79,4 +79,7 @@ function setupDirectory(){
 function readDirectory(){
    var res = fs.readFileSync('path.txt', 'utf-8');
    pathFile = res;
+   let setupDir = document.getElementById('setupDir');
+   setupDir.files[0].path = pathFile.slice();
+
 }
