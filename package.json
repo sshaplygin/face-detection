@@ -17,9 +17,7 @@
     "electron": "^1.8.2",
     "electron-builder": "^20.2.0",
     "electron-compilers": "^5.9.0",
-    "electron-rebuild": "^1.7.3"
-  },
-  "dependencies":{
+    "electron-rebuild": "^1.7.3",
     "opencv": "^6.0.0"
   }
 }

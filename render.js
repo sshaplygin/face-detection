@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-//const cv = require('opencv');
+const cv = require('opencv');
 
 var pathFile = '';
 var streaming = false;
@@ -16,15 +16,15 @@ function startVideo(){
       sasBnt.textContent = 'Start';
       sBtn.disabled = true;
     }
-    //findFace();
+    findFace();
 }
 
 function findFace() {
   let camera = new cv.VideoCapture(0);
-  if (true){
+  if (camera){
     const FPS = 30;
     let cnvs = document.getElementById('video-flow');
-    //processVideo(camera, cnvs);
+    processVideo(camera, cnvs);
   }else{
     alert("camera not found");
   }
@@ -38,7 +38,6 @@ function processVideo(camera, cnvs) {
         }
         let begin = Date.now();
 
-        // start processing.
         camera.read((err, im)=>{
           if (err) throw err;
           if (im.size()[0] > 0 && im.size()[1] >1){
@@ -62,41 +61,22 @@ function processVideo(camera, cnvs) {
 function saveImage (){
     let fileName = 'screen' + Date.now()+ '.jpeg';
     let canvas = document.getElementById('video-flow');
-    var ctx = canvas.getContext('2d');
-    ctx.fillRect(25,25,100,100);
-    ctx.clearRect(45,45,60,60);
-    ctx.strokeRect(50,50,50,50);
-    var image = canvas.toDataURL("image/jpeg");//.replace("image/png", "image/octet-stream");
-    console.log(image);
-    fs.writeFile(fileName, image, 'binary', (err)=>{
+    var image = canvas.toDataURL("image/png").replace(/^data:image\/\w+;base64,/, "");;
+    var buf = new Buffer(image, 'base64');
+    fs.writeFile(path.join(pathFile, fileName), buf, (err)=>{
       if (err) throw err;
     });
 }
 
 function setupDirectory(){
   let setupDir = document.getElementById('setupDir');
-  //const ipcRenderer = require('electron').ipcRenderer;
-//  ipcRenderer.sendSync('synchronous-message', pathFile);
-  //readDirectory(pathFile);
-  console.log(setupDir.files[0].path);
-  fs.writeFileSync('path.txt', 'asdsad');
-  if (setupDir.files.length > 1 ){
-    fs.writeFileSync('path.txt', 'asdsad');
+  if (setupDir.files.length >= 1 ){
+    fs.writeFileSync('path.txt', path.normalize(setupDir.files[0].path));
     readDirectory();
   }
 }
 
 function readDirectory(){
-
-  //const ipcRenderer = require('electron').ipcRenderer;
-  //console.log(ipcRenderer.sendSync('synchronous-message', 'ping')); // prints "pong"
-
-  /*ipcRenderer.on('asynchronous-reply', (event, arg) => {
-    console.log(arg);
-    event.sender.send('asynchronous-reply', 'ping');
-  });*/
-
-   var res = fs.readFileSync('path.txt');
+   var res = fs.readFileSync('path.txt', 'utf-8');
    pathFile = res;
-   console.log(pathFile);
 }
