@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const cv = require('opencv');
+//const cv = require('opencv');
 
 var pathFile = '';
 var streaming = false;
