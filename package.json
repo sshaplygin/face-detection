@@ -18,5 +18,8 @@
     "electron-builder": "^20.2.0",
     "electron-compilers": "^5.9.0",
     "electron-rebuild": "^1.7.3"
+  },
+  "dependencies": {
+    "node-gyp": "^3.6.2"
   }
 }

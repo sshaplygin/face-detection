@@ -1,0 +1,34 @@
+/* General styles */
+.header{
+  width: 40px;
+}
+
+.main{
+  margin: 0 auto;
+  width: 600px;
+  border-width: 40px 0 25px;
+  background: #fff;
+  height: 100%;
+}
+
+.footer{
+  width: 25px;
+}
+
+/* Main styles */
+#video-flow{
+  margin: 0 auto;
+  width: 600px;
+}
+
+/* Elements styles */
+
+.text{
+
+}
+
+.btn{
+  line-height: 26px;
+  border-radius: 3px;
+  opacity: .6;
+}
