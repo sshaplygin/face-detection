@@ -7,11 +7,11 @@ Desktop application face recognition on web-cam flow
 ```
 git clone https://github.com/mrfoe7/face-recog.git
 cd face-recog
-npm install 
+npm install
 npm start
 ```
 
-##Depencies
+## Depencies
 
 * electron
 * electron-builder

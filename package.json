@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "pack": "electron-builder --dir"
+    "pack": "electron-builder --dir",
+    "rebuild": "electron-rebuild -w opencv4nodejs"
   },
   "keywords": [
     "electron",
@@ -16,7 +17,6 @@
   "devDependencies": {
     "electron": "^1.8.2",
     "electron-builder": "^20.2.0",
-    "electron-compilers": "^5.9.0",
     "electron-rebuild": "^1.7.3"
   },
   "dependencies": {
