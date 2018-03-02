@@ -7,22 +7,34 @@
     <script src="render.js"></script>
   </head>
   <body onload="readDirectory()">
-    <div class="header">
-
-    </div>
-    <div class="main">
-      <div class="video-cam">
-        <span class="text">Изображение с видеокамеры</span>
-        <button type="button" onclick="startVideo()" id="startAndStop">Start</button>
-        <canvas id="video-flow"></canvas>
+    <div class="app">
+      <div class="header">
+        <div class="logo-wrap">
+          <p><span class="text logo">FFC - Face recognition from camera</span></p>
+        </div>
       </div>
-      <div class="setup-menu">
-        <input class="btn" type="file" webkitdirectory  id="setupDir" onchange="setupDirectory()" value="Установить директорию"/>
-        <button class="btn" type="button" id="saveImage" onclick="saveImage()" disabled>Сохранить</button>
+      <div class="main">
+        <div class="main-wrap">
+          <div class="video-menu">
+            <div class="setup-menu">
+              <span class="text">Изображение с видеокамеры</span>
+              <button class="btn start" type="button" onclick="startVideo()" id="startAndStop">Start</button>
+            </div>
+            <div class="video-wrap">
+              <canvas id="video-flow"></canvas>
+            </div>
+          </div>
+          <div class="setup-menu">
+            <input type="file" webkitdirectory  id="setupDir" onchange="setupDirectory()" value="Установить директорию"/>
+            <button class="btn" type="button" id="saveImage" onclick="saveImage()" disabled>Сохранить</button>
+          </div>
+        </div>
+        </div>
+      <div class="footer">
+        <div class="copyrigth-wrap">
+          <p><span class="text copyrigth">Текст текст</span></p>
+        </div>
       </div>
-    </div>
-    <div class="footer">
-
     </div>
   </body>
 </html>

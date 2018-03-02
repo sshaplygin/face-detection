@@ -11,12 +11,13 @@ function startVideo(){
     let sBtn = document.getElementById('saveImage');
     if (streaming){
       sasBnt.textContent = 'Stop';
-      sBtn.disabled = false;
     }else{
       sasBnt.textContent = 'Start';
-      sBtn.disabled = true;
     }
-    findFace();
+    sBtn.disabled = !sBtn.disabled;
+    sasBnt.classList.toggle(stop);
+    sasBnt.classList.toggle(start);
+    //findFace();
 }
 
 function findFace() {
