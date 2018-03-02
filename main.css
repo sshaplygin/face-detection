@@ -19,8 +19,10 @@ p{
 
 .main{
    height: 100%;
-
+   min-height: 50px;
+   margin: 25px auto;
    overflow: auto;
+   max-width: 550px;
   /*width: 100%;
   border-width: 40px 0 40px;
   background: #fff;
@@ -45,26 +47,25 @@ p{
 }
 
 .main-wrap{
-  margin: auto;
+  text-align: center;
 }
 
 .video-menu{
   width: 100%;
 }
 
+.mrg-1{
+  padding: 45px 0px 20px 0px;
+}
+
 .video-wrap{
   height: 400px;
 }
 
-.setup-menu{
-  margin: 0 auto;
-}
-
 /* Elements styles */
 
-.text{
-/*margin: 0 auto;
-  text-align: center;*/
+.lbl{
+  font-size: 24px;
 }
 
 .logo{
@@ -76,15 +77,28 @@ p{
   color: white;
 }
 
+#video-flow{
+  width: 550px;
+  height: 100%;
+  background: #000;
+}
+
 .btn{
   line-height: 26px;
   border-radius: 3px;
-  padding: 0px 7px 0px 7px;
+  padding: 1px 15px 1px 15px;
 }
 
-
+.p-left{
+  float: left;
+}
+.p-rigth{
+  float: right;;
+}
 .start{
   background: #6fd170;
+  color: white;
+  font-weight: 600;
 }
 .stop{
   background: #b81f1f;

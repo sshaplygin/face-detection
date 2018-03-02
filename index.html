@@ -10,29 +10,37 @@
     <div class="app">
       <div class="header">
         <div class="logo-wrap">
-          <p><span class="text logo">FFC - Face recognition from camera</span></p>
+          <p><span class="logo">FFC - Face recognition from camera</span></p>
         </div>
       </div>
       <div class="main">
         <div class="main-wrap">
           <div class="video-menu">
             <div class="setup-menu">
-              <span class="text">Изображение с видеокамеры</span>
-              <button class="btn start" type="button" onclick="startVideo()" id="startAndStop">Start</button>
-            </div>
-            <div class="video-wrap">
-              <canvas id="video-flow"></canvas>
-            </div>
+              <div class="p-left">
+                <span class="lbl">Изображение с видеокамеры</span>
+              </div>
+              <div class="p-rigth">
+                <button class="btn start" type="button" onclick="startVideo()" id="startAndStop"><span class="text">Start</span></button>
+              </div>
+          </div>
+          <div class="video-wrap mrg-1">
+            <canvas id="video-flow"></canvas>
           </div>
           <div class="setup-menu">
-            <input type="file" webkitdirectory  id="setupDir" onchange="setupDirectory()" value="Установить директорию"/>
-            <button class="btn" type="button" id="saveImage" onclick="saveImage()" disabled>Сохранить</button>
+            <div class="p-left">
+              <input  type="file" webkitdirectory  id="setupDir" onchange="setupDirectory()" value="Установить директорию"/>
+            </div>
+            <div class="p-rigth">
+              <button class="btn start" type="button" id="saveImage" onclick="saveImage()" disabled><span class="text">Сохранить</span></button>
+            </div>
           </div>
         </div>
         </div>
+      </div>
       <div class="footer">
         <div class="copyrigth-wrap">
-          <p><span class="text copyrigth">Saimon Shaplygin ©</span></p>
+          <p><span class="copyrigth">Saimon Shaplygin ©</span></p>
         </div>
       </div>
     </div>
