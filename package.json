@@ -4,9 +4,10 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --asar=true",
     "pack": "electron-builder --dir",
-    "rebuild": "electron-rebuild -w opencv4nodejs"
+    "rebuild": "electron-rebuild -f -w opencv4nodejs",
+    "dev": "electron . --debug"
   },
   "keywords": [
     "electron",
@@ -17,7 +18,8 @@
   "devDependencies": {
     "electron": "^1.8.2",
     "electron-builder": "^20.2.0",
-    "electron-rebuild": "^1.7.3"
+    "electron-rebuild": "^1.7.3",
+    "opencv": "*"
   },
   "dependencies": {
     "node-gyp": "^3.6.2"
