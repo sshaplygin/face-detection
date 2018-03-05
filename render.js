@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-//const cv = require('opencv');
+const cv = require('opencv');
 
 var pathFile = '';
 var streaming = false;
@@ -17,7 +17,7 @@ function startVideo(){
     sBtn.disabled = !sBtn.disabled;
     sasBnt.classList.toggle(stop);
     sasBnt.classList.toggle(start);
-    //findFace();
+    findFace();
 }
 
 function findFace() {

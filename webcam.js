@@ -1,5 +1,4 @@
 const cv = require('opencv');
-
 var path = require('path');
 
   try{
@@ -10,7 +9,7 @@ var path = require('path');
     setInterval(()=>{
       camera.read((err, im)=>{
         if (err) throw err;
-        console.log(im.size());
+        //console.log(im.size());
         if (im.size()[0] > 0 && im.size()[1] >1){
           im.detectObject(cv.FACE_CASCADE, {}, (err, faces)=>{
             if (err) throw err;
