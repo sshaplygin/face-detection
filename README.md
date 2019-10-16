@@ -1,6 +1,6 @@
 Face recognition
 ================
-Desktop application face recognition on web-cam flow
+Desktop application face detection on web-cam flow
 
 
 
