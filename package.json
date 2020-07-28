@@ -19,7 +19,7 @@
     "electron": "^7.2.4",
     "electron-builder": "^20.2.0",
     "electron-rebuild": "^1.7.3",
-    "opencv": "6.0.0"
+    "opencv": "6.1.0"
   },
   "dependencies": {
     "node-gyp": "^3.6.2"
