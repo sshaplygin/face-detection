@@ -16,7 +16,7 @@
   "author": "Semen Shaplygin",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^9.4.0",
+    "electron": "^11.5.0",
     "electron-builder": "^20.2.0",
     "electron-rebuild": "^1.7.3",
     "opencv": "6.1.0"
