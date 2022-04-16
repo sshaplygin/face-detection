@@ -1,13 +1,12 @@
-Face recognition
+Face detecation
 ================
 Desktop application face detection on web-cam flow
-
 
 
 ## Usage
 
 ```
-git clone https://github.com/mrfoe7/face-recog.git
+git clone https://github.com/sshaplygin/face-detection.git
 cd face-recog
 npm install
 npm start
