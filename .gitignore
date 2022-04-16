@@ -1,3 +1,7 @@
 *.pdf
 node_modules/
 *.jpeg
+
+# IDE system files
+.idea
+.vscode
