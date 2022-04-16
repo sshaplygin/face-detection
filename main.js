@@ -2,9 +2,6 @@ const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 
-const url = require('url');
-
-
 let mainWindow;
 
 function createWindow () {

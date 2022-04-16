@@ -59,7 +59,7 @@ function processVideo(camera, cnvs) {
     }
 };
 
-function saveImage (){
+function saveImage(){
     let fileName = 'screen' + Date.now()+ '.jpeg';
     let canvas = document.getElementById('video-flow');
     var image = canvas.toDataURL("image/png").replace(/^data:image\/\w+;base64,/, "");;
