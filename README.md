@@ -1,28 +1,13 @@
-Face detecation
-================
-Desktop application face detection on web-cam flow
+# Face detection
 
+Desktop application face detection on web-cam flow from Elector, OpenCV and Rust
 
 ## Usage
 
-```
+```bash
 git clone https://github.com/sshaplygin/face-detection.git
-cd face-recog
-npm install
-npm start
-
-```
-
-If you want tested opencv only command windows use:
-```
-node webcam.js
-```
-
-If you want pack, rebuild or run with debug use:
-```
-"pack": "electron-builder --dir",
-"rebuild": "electron-rebuild -f -w opencv4nodejs",
-"dev": "electron . --debug"
+cd face-detection
+npm i && npm dev
 ```
 
 ## Depencies

@@ -1,28 +1,50 @@
 {
   "name": "face-detection",
-  "version": "0.1.0",
-  "description": "Desktop application face detection on web-cam flow",
-  "main": "main.js",
+  "version": "1.0.0",
+  "description": "Desktop application face detection on web-cam flow from OpenCV and Electron",
+  "main": "./out/main/index.js",
   "scripts": {
-    "start": "electron . --asar=true",
-    "pack": "electron-builder --dir",
-    "rebuild": "electron-rebuild -f -w opencv4nodejs",
-    "dev": "electron . --debug"
+    "build:native": "napi build --manifest-path native/Cargo.toml --platform --js false --dts native/index.d.ts --output-dir .",
+    "build:native:release": "napi build --manifest-path native/Cargo.toml --platform --js false --dts native/index.d.ts --output-dir . --release",
+    "dev": "npm run build:native && electron-vite dev",
+    "build": "npm run build:native:release && electron-vite build",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder"
   },
   "keywords": [
     "electron",
+    "face-detection",
     "opencv",
-    "face-detection"
+    "rust",
+    "svelte"
   ],
-  "author": "Saimon Shaplygin",
+  "author": "Sam Shaplygin",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^18.3.7",
-    "electron-builder": "^23.6.0",
-    "electron-rebuild": "^1.7.3",
-    "opencv": "7.0.0"
+    "@napi-rs/cli": "^3.0.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "electron": "^34.5.8",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^3.1.0",
+    "svelte": "^5.0.0",
+    "typescript": "^5.7.0"
   },
-  "dependencies": {
-    "node-gyp": "^3.6.2"
+  "build": {
+    "appId": "dev.sshaplygin.face-detection",
+    "productName": "Face Detection",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "asarUnpack": [
+      "**/*.node",
+      "**/*.dylib"
+    ],
+    "files": [
+      "out/**/*",
+      "*.node"
+    ],
+    "afterPack": "./scripts/fix-dylib.js"
   }
 }
