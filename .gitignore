@@ -1,7 +1,24 @@
 *.pdf
-node_modules/
 *.jpeg
 
 # IDE system files
 .idea
 .vscode
+
+# Dependencies
+node_modules/
+
+# Build output
+out/
+dist/
+build/
+
+# Rust / native
+native/target/
+*.node
+
+# Electron-vite
+.electron-vite/
+
+# OS files
+.DS_Store
