@@ -1,11 +1,43 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use opencv::core::{AlgorithmHint, Mat, MatTraitConst, Point, Scalar, Vec4b, CV_8UC4};
+use opencv::core::{AlgorithmHint, Mat, MatTraitConst, Rect, Scalar, Size, Vec4b, CV_8UC4};
 use opencv::imgproc;
-use opencv::prelude::MatTraitConstManual;
+use opencv::objdetect::CascadeClassifier;
+use opencv::prelude::*;
+use std::sync::Mutex;
 
-/// Process a single RGBA frame: convert to grayscale and back to RGBA.
-/// `input` is raw RGBA pixel data, `width`/`height` are frame dimensions.
+static CASCADE: Mutex<Option<CascadeClassifier>> = Mutex::new(None);
+
+fn get_cascade() -> Result<std::sync::MutexGuard<'static, Option<CascadeClassifier>>> {
+    let mut guard = CASCADE
+        .lock()
+        .map_err(|e| Error::from_reason(format!("Mutex poisoned: {e}")))?;
+
+    if guard.is_none() {
+        let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("data")
+            .join("haarcascade_frontalface_default.xml");
+
+        let mut cc = CascadeClassifier::new(
+            xml_path
+                .to_str()
+                .ok_or_else(|| Error::from_reason("Invalid cascade path"))?,
+        )
+        .map_err(|e| Error::from_reason(format!("Failed to load cascade: {e}")))?;
+
+        if cc.empty()
+            .map_err(|e| Error::from_reason(format!("Cascade check failed: {e}")))?
+        {
+            return Err(Error::from_reason("Cascade classifier is empty"));
+        }
+
+        *guard = Some(cc);
+    }
+
+    Ok(guard)
+}
+
+/// Process a single RGBA frame: detect faces using Haar cascade and draw rectangles.
 #[napi]
 pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
     let data = input.as_ref();
@@ -14,14 +46,11 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
     if data.len() != expected_len {
         return Err(Error::from_reason(format!(
             "Buffer size mismatch: expected {} bytes ({}x{}x4), got {}",
-            expected_len,
-            width,
-            height,
-            data.len()
+            expected_len, width, height, data.len()
         )));
     }
 
-    // Create Mat from RGBA buffer (no copy — borrows the slice)
+    // Create Mat from RGBA buffer
     let src = unsafe {
         Mat::new_rows_cols_with_data_unsafe(
             height,
@@ -33,7 +62,10 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
     }
     .map_err(|e| Error::from_reason(format!("Failed to create Mat: {e}")))?;
 
-    // RGBA → Grayscale
+    // Clone so we can draw on it
+    let mut dst = src.clone();
+
+    // RGBA → Grayscale for detection
     let mut gray = Mat::default();
     imgproc::cvt_color(
         &src,
@@ -42,47 +74,41 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
         0,
         AlgorithmHint::ALGO_HINT_DEFAULT,
     )
-    .map_err(|e| Error::from_reason(format!("cvtColor RGBA2GRAY failed: {e}")))?;
+    .map_err(|e| Error::from_reason(format!("cvtColor failed: {e}")))?;
 
-    // Apply Gaussian blur for a visible effect
-    let mut blurred = Mat::default();
-    imgproc::gaussian_blur(
-        &gray,
-        &mut blurred,
-        opencv::core::Size::new(7, 7),
-        1.5,
-        1.5,
-        opencv::core::BORDER_DEFAULT,
-        AlgorithmHint::ALGO_HINT_DEFAULT,
+    // Equalize histogram to improve detection
+    let mut eq = Mat::default();
+    imgproc::equalize_hist(&gray, &mut eq)
+        .map_err(|e| Error::from_reason(format!("equalizeHist failed: {e}")))?;
+
+    // Detect faces
+    let mut faces = opencv::core::Vector::<Rect>::new();
+    let mut guard = get_cascade()?;
+    let cc = guard
+        .as_mut()
+        .ok_or_else(|| Error::from_reason("Cascade not initialized"))?;
+
+    cc.detect_multi_scale(
+        &eq,
+        &mut faces,
+        1.1,              // scale factor
+        3,                // min neighbors
+        0,                // flags
+        Size::new(30, 30), // min size
+        Size::new(0, 0),   // max size (unlimited)
     )
-    .map_err(|e| Error::from_reason(format!("GaussianBlur failed: {e}")))?;
+    .map_err(|e| Error::from_reason(format!("detectMultiScale failed: {e}")))?;
 
-    // Grayscale → RGBA (so the renderer can display it)
-    let mut dst = Mat::default();
-    imgproc::cvt_color(
-        &blurred,
-        &mut dst,
-        imgproc::COLOR_GRAY2RGBA,
-        0,
-        AlgorithmHint::ALGO_HINT_DEFAULT,
-    )
-    .map_err(|e| Error::from_reason(format!("cvtColor GRAY2RGBA failed: {e}")))?;
+    // Draw green rectangles around detected faces
+    let color = Scalar::new(0.0, 255.0, 0.0, 255.0); // green in RGBA
+    for face in faces.iter() {
+        imgproc::rectangle(&mut dst, face, color, 2, imgproc::LINE_8, 0)
+            .map_err(|e| Error::from_reason(format!("rectangle failed: {e}")))?;
+    }
 
-    imgproc::circle(
-        &mut dst,
-        Point::new(width / 2, height / 2),
-        50,
-        Scalar::new(255.0, 0.0, 0.0, 255.0),
-        3,
-        imgproc::LINE_8,
-        0,
-    )
-    .map_err(|e| Error::from_reason(format!("circle LINE_8 failed: {e}")))?;
-
-    // Copy output pixels into a Vec<u8>
-    let data = dst
+    let out = dst
         .data_bytes()
         .map_err(|e| Error::from_reason(format!("data access failed: {e}")))?;
 
-    Ok(Buffer::from(data.to_vec()))
+    Ok(Buffer::from(out.to_vec()))
 }

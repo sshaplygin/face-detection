@@ -11,6 +11,7 @@ napi = { version = "2", features = ["napi6", "async"] }
 napi-derive = "2"
 opencv = { version = "0.98.1", default-features = false, features = [
     "imgproc",
+    "objdetect",
 ] }
 
 [build-dependencies]
