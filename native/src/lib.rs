@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use opencv::core::{AlgorithmHint, Mat, MatTraitConst, Vec4b, CV_8UC4};
+use opencv::core::{AlgorithmHint, Mat, MatTraitConst, Point, Scalar, Vec4b, CV_8UC4};
 use opencv::imgproc;
 use opencv::prelude::MatTraitConstManual;
 
@@ -67,6 +67,17 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
         AlgorithmHint::ALGO_HINT_DEFAULT,
     )
     .map_err(|e| Error::from_reason(format!("cvtColor GRAY2RGBA failed: {e}")))?;
+
+    imgproc::circle(
+        &mut dst,
+        Point::new(width / 2, height / 2),
+        50,
+        Scalar::new(255.0, 0.0, 0.0, 255.0),
+        3,
+        imgproc::LINE_8,
+        0,
+    )
+    .map_err(|e| Error::from_reason(format!("circle LINE_8 failed: {e}")))?;
 
     // Copy output pixels into a Vec<u8>
     let data = dst

@@ -1,82 +1,91 @@
 <script lang="ts">
-  let streaming = $state(false)
-  let videoEl: HTMLVideoElement
-  let canvasEl: HTMLCanvasElement
-  let mediaStream: MediaStream | null = null
-  let animationId: number | null = null
-  let fps = $state(0)
+  let streaming = $state(false);
+  let videoEl: HTMLVideoElement;
+  let canvasEl: HTMLCanvasElement;
+  let mediaStream: MediaStream | null = null;
+  let animationId: number | null = null;
+  let fps = $state(0);
+  let processedArray: Uint8ClampedArray;
+  let outImageData: ImageData;
 
   async function toggleCamera() {
     if (streaming) {
-      stopCamera()
+      stopCamera();
     } else {
-      await startCamera()
+      await startCamera();
     }
   }
 
   async function startCamera() {
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480 }
-      })
-      videoEl.srcObject = mediaStream
-      await videoEl.play()
+        video: { width: 640, height: 480 },
+      });
+      videoEl.srcObject = mediaStream;
+      await videoEl.play();
 
-      canvasEl.width = videoEl.videoWidth || 640
-      canvasEl.height = videoEl.videoHeight || 480
-      streaming = true
+      canvasEl.width = videoEl.videoWidth || 640;
+      canvasEl.height = videoEl.videoHeight || 480;
 
-      processLoop()
+      const w = canvasEl.width;
+      const h = canvasEl.height;
+
+      processedArray = new Uint8ClampedArray(w * h * 4);
+
+      const ctx = canvasEl.getContext("2d");
+      outImageData = ctx.createImageData(w, h);
+
+      streaming = true;
+
+      processLoop();
     } catch (err) {
-      console.error('Camera error:', err)
+      console.error("Camera error:", err);
     }
   }
 
   function stopCamera() {
-    streaming = false
+    streaming = false;
     if (animationId !== null) {
-      cancelAnimationFrame(animationId)
-      animationId = null
+      cancelAnimationFrame(animationId);
+      animationId = null;
     }
     if (mediaStream) {
-      mediaStream.getTracks().forEach((t) => t.stop())
-      mediaStream = null
+      mediaStream.getTracks().forEach((t) => t.stop());
+      mediaStream = null;
     }
-    videoEl.srcObject = null
+    videoEl.srcObject = null;
   }
 
   async function processLoop() {
-    if (!streaming) return
+    if (!streaming) return;
 
-    const ctx = canvasEl.getContext('2d')!
-    const w = canvasEl.width
-    const h = canvasEl.height
+    const ctx = canvasEl.getContext("2d")!;
+
+    const w = canvasEl.width;
+    const h = canvasEl.height;
 
     // Draw current video frame to canvas to extract pixels
-    ctx.drawImage(videoEl, 0, 0, w, h)
-    const imageData = ctx.getImageData(0, 0, w, h)
+    ctx.drawImage(videoEl, 0, 0, w, h);
+    const imageData = ctx.getImageData(0, 0, w, h);
 
-    const start = performance.now()
+    const start = performance.now();
 
     try {
       // Send RGBA buffer to Rust via IPC
-      const result = await window.api.processFrame(
-        imageData.data.buffer,
-        w,
-        h
-      )
+      const result = await window.api.processFrame(imageData.data.buffer, w, h);
 
-      // Put processed pixels back on canvas
-      const processed = new Uint8ClampedArray(result)
-      const outImageData = new ImageData(processed, w, h)
-      ctx.putImageData(outImageData, 0, 0)
+      processedArray.set(new Uint8ClampedArray(result));
 
-      fps = Math.round(1000 / (performance.now() - start))
+      outImageData.data.set(processedArray);
+
+      ctx.putImageData(outImageData, 0, 0);
+
+      fps = Math.round(1000 / (performance.now() - start));
     } catch (err) {
-      console.error('Frame processing error:', err)
+      console.error("Frame processing error:", err);
     }
 
-    animationId = requestAnimationFrame(processLoop)
+    animationId = requestAnimationFrame(processLoop);
   }
 </script>
 
@@ -88,7 +97,7 @@
   <main>
     <div class="controls">
       <button class:active={streaming} onclick={toggleCamera}>
-        {streaming ? 'Stop' : 'Start'} Camera
+        {streaming ? "Stop" : "Start"} Camera
       </button>
       {#if streaming}
         <span class="fps">{fps} FPS</span>
@@ -111,7 +120,7 @@
 <style>
   :global(body) {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background: #1a1a2e;
     color: #eee;
   }
