@@ -1,24 +1,21 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use opencv::core::{AlgorithmHint, Mat, MatTraitConst, Rect, Scalar, Size, Vec4b, CV_8UC4};
+use opencv::core::{AlgorithmHint, Mat, Rect, Scalar, Size, CV_8UC4};
 use opencv::imgproc;
 use opencv::objdetect::CascadeClassifier;
 use opencv::prelude::*;
+use once_cell::sync::OnceCell;
 use std::sync::Mutex;
 
-static CASCADE: Mutex<Option<CascadeClassifier>> = Mutex::new(None);
+static CASCADE: OnceCell<Mutex<CascadeClassifier>> = OnceCell::new();
 
-fn get_cascade() -> Result<std::sync::MutexGuard<'static, Option<CascadeClassifier>>> {
-    let mut guard = CASCADE
-        .lock()
-        .map_err(|e| Error::from_reason(format!("Mutex poisoned: {e}")))?;
-
-    if guard.is_none() {
+fn get_cascade() -> Result<std::sync::MutexGuard<'static, CascadeClassifier>> {
+    let mtx = CASCADE.get_or_try_init(|| {
         let xml_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("data")
             .join("haarcascade_frontalface_default.xml");
 
-        let mut cc = CascadeClassifier::new(
+        let cc = CascadeClassifier::new(
             xml_path
                 .to_str()
                 .ok_or_else(|| Error::from_reason("Invalid cascade path"))?,
@@ -32,10 +29,11 @@ fn get_cascade() -> Result<std::sync::MutexGuard<'static, Option<CascadeClassifi
             return Err(Error::from_reason("Cascade classifier is empty"));
         }
 
-        *guard = Some(cc);
-    }
+        Ok(Mutex::new(cc))
+    })?;
 
-    Ok(guard)
+    mtx.lock()
+        .map_err(|e| Error::from_reason(format!("Mutex poisoned: {e}")))
 }
 
 /// Process a single RGBA frame: detect faces using Haar cascade and draw rectangles.
@@ -87,10 +85,7 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
 
     // Detect faces
     let mut faces = opencv::core::Vector::<Rect>::new();
-    let mut guard = get_cascade()?;
-    let cc = guard
-        .as_mut()
-        .ok_or_else(|| Error::from_reason("Cascade not initialized"))?;
+    let mut cc = get_cascade()?;
 
     cc.detect_multi_scale(
         &eq,
