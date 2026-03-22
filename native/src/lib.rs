@@ -2,6 +2,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use opencv::core::{AlgorithmHint, Mat, MatTraitConst, Vec4b, CV_8UC4};
 use opencv::imgproc;
+use opencv::prelude::MatTraitConstManual;
 
 /// Process a single RGBA frame: convert to grayscale and back to RGBA.
 /// `input` is raw RGBA pixel data, `width`/`height` are frame dimensions.
@@ -68,22 +69,9 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
     .map_err(|e| Error::from_reason(format!("cvtColor GRAY2RGBA failed: {e}")))?;
 
     // Copy output pixels into a Vec<u8>
-    let mut output = vec![0u8; expected_len];
-    let rows = dst.rows();
-    let cols = dst.cols();
+    let data = dst
+        .data_bytes()
+        .map_err(|e| Error::from_reason(format!("data access failed: {e}")))?;
 
-    for y in 0..rows {
-        for x in 0..cols {
-            let pixel: &Vec4b = dst
-                .at_2d(y, x)
-                .map_err(|e| Error::from_reason(format!("pixel read failed: {e}")))?;
-            let idx = ((y * cols + x) * 4) as usize;
-            output[idx] = pixel[0];
-            output[idx + 1] = pixel[1];
-            output[idx + 2] = pixel[2];
-            output[idx + 3] = pixel[3];
-        }
-    }
-
-    Ok(Buffer::from(output))
+    Ok(Buffer::from(data.to_vec()))
 }
