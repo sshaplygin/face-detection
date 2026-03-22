@@ -1,6 +1,6 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use opencv::core::{Mat, MatTraitConst, Vec4b, CV_8UC4};
+use opencv::core::{AlgorithmHint, Mat, MatTraitConst, Vec4b, CV_8UC4};
 use opencv::imgproc;
 
 /// Process a single RGBA frame: convert to grayscale and back to RGBA.
@@ -13,7 +13,10 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
     if data.len() != expected_len {
         return Err(Error::from_reason(format!(
             "Buffer size mismatch: expected {} bytes ({}x{}x4), got {}",
-            expected_len, width, height, data.len()
+            expected_len,
+            width,
+            height,
+            data.len()
         )));
     }
 
@@ -31,8 +34,14 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
 
     // RGBA → Grayscale
     let mut gray = Mat::default();
-    imgproc::cvt_color(&src, &mut gray, imgproc::COLOR_RGBA2GRAY, 0)
-        .map_err(|e| Error::from_reason(format!("cvtColor RGBA2GRAY failed: {e}")))?;
+    imgproc::cvt_color(
+        &src,
+        &mut gray,
+        imgproc::COLOR_RGBA2GRAY,
+        0,
+        AlgorithmHint::ALGO_HINT_DEFAULT,
+    )
+    .map_err(|e| Error::from_reason(format!("cvtColor RGBA2GRAY failed: {e}")))?;
 
     // Apply Gaussian blur for a visible effect
     let mut blurred = Mat::default();
@@ -43,13 +52,20 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
         1.5,
         1.5,
         opencv::core::BORDER_DEFAULT,
+        AlgorithmHint::ALGO_HINT_DEFAULT,
     )
     .map_err(|e| Error::from_reason(format!("GaussianBlur failed: {e}")))?;
 
     // Grayscale → RGBA (so the renderer can display it)
     let mut dst = Mat::default();
-    imgproc::cvt_color(&blurred, &mut dst, imgproc::COLOR_GRAY2RGBA, 0)
-        .map_err(|e| Error::from_reason(format!("cvtColor GRAY2RGBA failed: {e}")))?;
+    imgproc::cvt_color(
+        &blurred,
+        &mut dst,
+        imgproc::COLOR_GRAY2RGBA,
+        0,
+        AlgorithmHint::ALGO_HINT_DEFAULT,
+    )
+    .map_err(|e| Error::from_reason(format!("cvtColor GRAY2RGBA failed: {e}")))?;
 
     // Copy output pixels into a Vec<u8>
     let mut output = vec![0u8; expected_len];

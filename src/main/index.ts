@@ -4,7 +4,7 @@ import { join } from 'path'
 // Native module must be loaded via require (CommonJS) for .node binaries
 // Detect architecture to load the correct binary (Apple Silicon vs Intel)
 const arch = process.arch === 'arm64' ? 'darwin-arm64' : 'darwin-x64'
-const native = require(join(__dirname, `../../native-module.${arch}.node`))
+const native = require(join(__dirname, `../../index.${arch}.node`))
 
 let mainWindow: BrowserWindow | null = null
 
