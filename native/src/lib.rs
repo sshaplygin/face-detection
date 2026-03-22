@@ -1,10 +1,10 @@
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use opencv::core::{AlgorithmHint, Mat, Rect, Scalar, Size, CV_8UC4};
+use once_cell::sync::OnceCell;
+use opencv::core::{Mat, Rect, Scalar, Size, CV_8UC4};
 use opencv::imgproc;
 use opencv::objdetect::CascadeClassifier;
 use opencv::prelude::*;
-use once_cell::sync::OnceCell;
 use std::sync::Mutex;
 
 static CASCADE: OnceCell<Mutex<CascadeClassifier>> = OnceCell::new();
@@ -69,14 +69,8 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
 
     // RGBA → Grayscale for detection
     let mut gray = Mat::default();
-    imgproc::cvt_color(
-        &src,
-        &mut gray,
-        imgproc::COLOR_RGBA2GRAY,
-        0,
-        AlgorithmHint::ALGO_HINT_DEFAULT,
-    )
-    .map_err(|e| Error::from_reason(format!("cvtColor failed: {e}")))?;
+    imgproc::cvt_color_def(&src, &mut gray, imgproc::COLOR_RGBA2GRAY)
+        .map_err(|e| Error::from_reason(format!("cvtColor failed: {e}")))?;
 
     // Equalize histogram to improve detection
     let mut eq = Mat::default();
