@@ -35,7 +35,7 @@
 
       processedArray = new Uint8ClampedArray(w * h * 4);
 
-      const ctx = canvasEl.getContext("2d");
+      const ctx = canvasEl.getContext("2d")!;
       outImageData = ctx.createImageData(w, h);
 
       streaming = true;

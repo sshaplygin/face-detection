@@ -7,7 +7,10 @@ fn main() {
     if std::env::var("LIBCLANG_PATH").is_err() {
         let xcode_libclang =
             "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib";
-        if std::path::Path::new(xcode_libclang).join("libclang.dylib").exists() {
+        if std::path::Path::new(xcode_libclang)
+            .join("libclang.dylib")
+            .exists()
+        {
             std::env::set_var("LIBCLANG_PATH", xcode_libclang);
         }
     }

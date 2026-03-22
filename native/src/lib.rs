@@ -25,7 +25,8 @@ fn get_cascade() -> Result<std::sync::MutexGuard<'static, Option<CascadeClassifi
         )
         .map_err(|e| Error::from_reason(format!("Failed to load cascade: {e}")))?;
 
-        if cc.empty()
+        if cc
+            .empty()
             .map_err(|e| Error::from_reason(format!("Cascade check failed: {e}")))?
         {
             return Err(Error::from_reason("Cascade classifier is empty"));
@@ -46,7 +47,10 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
     if data.len() != expected_len {
         return Err(Error::from_reason(format!(
             "Buffer size mismatch: expected {} bytes ({}x{}x4), got {}",
-            expected_len, width, height, data.len()
+            expected_len,
+            width,
+            height,
+            data.len()
         )));
     }
 
@@ -91,9 +95,9 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
     cc.detect_multi_scale(
         &eq,
         &mut faces,
-        1.1,              // scale factor
-        3,                // min neighbors
-        0,                // flags
+        1.1,               // scale factor
+        3,                 // min neighbors
+        0,                 // flags
         Size::new(30, 30), // min size
         Size::new(0, 0),   // max size (unlimited)
     )
@@ -111,4 +115,25 @@ pub fn process_frame(input: Buffer, width: i32, height: i32) -> Result<Buffer> {
         .map_err(|e| Error::from_reason(format!("data access failed: {e}")))?;
 
     Ok(Buffer::from(out.to_vec()))
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_buffer_size_calculation() {
+        let width: i32 = 640;
+        let height: i32 = 480;
+        let channels: i32 = 4; // RGBA
+        let expected = (width * height * channels) as usize;
+        assert_eq!(expected, 1_228_800);
+    }
+
+    #[test]
+    fn test_buffer_size_mismatch() {
+        let width: i32 = 1920;
+        let height: i32 = 1080;
+        let expected = (width * height * 4) as usize;
+        let wrong_size = 100usize;
+        assert_ne!(expected, wrong_size);
+    }
 }

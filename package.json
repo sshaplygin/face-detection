@@ -9,7 +9,8 @@
     "dev": "npm run build:native && electron-vite dev",
     "build": "npm run build:native:release && electron-vite build",
     "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },
   "keywords": [
     "electron",
@@ -27,6 +28,7 @@
     "electron-builder": "^26.8.1",
     "electron-vite": "^3.1.0",
     "svelte": "^5.0.0",
+    "svelte-check": "^4.4.5",
     "typescript": "^5.7.0"
   },
   "build": {
