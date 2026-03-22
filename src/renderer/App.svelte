@@ -1,12 +1,15 @@
 <script lang="ts">
   let streaming = $state(false);
+  let recording = $state(false);
   let videoEl: HTMLVideoElement;
   let canvasEl: HTMLCanvasElement;
   let mediaStream: MediaStream | null = null;
-  let animationId: number | null = null;
+  let videoCallbackId: number | null = null;
   let fps = $state(0);
   let processedArray: Uint8ClampedArray;
   let outImageData: ImageData;
+  let mediaRecorder: MediaRecorder | null = null;
+  let recordedChunks: Blob[] = [];
 
   async function toggleCamera() {
     if (streaming) {
@@ -37,23 +40,85 @@
 
       streaming = true;
 
-      processLoop();
+      videoCallbackId = videoEl.requestVideoFrameCallback(processLoop);
     } catch (err) {
       console.error("Camera error:", err);
     }
   }
 
-  function stopCamera() {
-    streaming = false;
-    if (animationId !== null) {
-      cancelAnimationFrame(animationId);
-      animationId = null;
+  async function stopCamera() {
+    if (recording) {
+      await stopRecording();
     }
+    streaming = false;
+    videoCallbackId = null;
     if (mediaStream) {
       mediaStream.getTracks().forEach((t) => t.stop());
       mediaStream = null;
     }
     videoEl.srcObject = null;
+  }
+
+  function startRecording() {
+    const stream = canvasEl.captureStream(0);
+    const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
+      ? "video/webm;codecs=vp9"
+      : MediaRecorder.isTypeSupported("video/webm;codecs=vp8")
+        ? "video/webm;codecs=vp8"
+        : "video/webm";
+
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream, { mimeType });
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        recordedChunks.push(e.data);
+      }
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `face-detection-${Date.now()}.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+      recordedChunks = [];
+    };
+
+    mediaRecorder.start(1000);
+    recording = true;
+  }
+
+  function stopRecording(): Promise<void> {
+    return new Promise((resolve) => {
+      if (!mediaRecorder || mediaRecorder.state !== "recording") {
+        recording = false;
+        resolve();
+        return;
+      }
+
+      const originalOnStop = mediaRecorder.onstop;
+      mediaRecorder.onstop = (e) => {
+        if (originalOnStop) {
+          (originalOnStop as (ev: Event) => void)(e);
+        }
+        mediaRecorder = null;
+        recording = false;
+        resolve();
+      };
+
+      mediaRecorder.stop();
+    });
+  }
+
+  function toggleRecording() {
+    if (recording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
   }
 
   async function processLoop() {
@@ -64,28 +129,27 @@
     const w = canvasEl.width;
     const h = canvasEl.height;
 
-    // Draw current video frame to canvas to extract pixels
     ctx.drawImage(videoEl, 0, 0, w, h);
     const imageData = ctx.getImageData(0, 0, w, h);
 
     const start = performance.now();
 
     try {
-      // Send RGBA buffer to Rust via IPC
       const result = await window.api.processFrame(imageData.data.buffer, w, h);
 
       processedArray.set(new Uint8ClampedArray(result));
-
       outImageData.data.set(processedArray);
 
-      ctx.putImageData(outImageData, 0, 0);
+      const bitmap = await createImageBitmap(outImageData);
+      ctx.drawImage(bitmap, 0, 0);
+      bitmap.close();
 
       fps = Math.round(1000 / (performance.now() - start));
     } catch (err) {
       console.error("Frame processing error:", err);
     }
 
-    animationId = requestAnimationFrame(processLoop);
+    videoCallbackId = videoEl.requestVideoFrameCallback(processLoop);
   }
 </script>
 
@@ -100,6 +164,9 @@
         {streaming ? "Stop" : "Start"} Camera
       </button>
       {#if streaming}
+        <button class:recording={recording} onclick={toggleRecording}>
+          {recording ? "Stop Recording" : "Record"}
+        </button>
         <span class="fps">{fps} FPS</span>
       {/if}
     </div>
@@ -171,6 +238,16 @@
 
   button.active {
     background: #b81f1f;
+  }
+
+  button.recording {
+    background: #e63946;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
   }
 
   .fps {
