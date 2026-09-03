@@ -24,8 +24,8 @@
   "devDependencies": {
     "@napi-rs/cli": "^3.0.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
-    "electron": "^39.8.5",
-    "electron-builder": "^26.8.1",
+    "electron": "^39.8.10",
+    "electron-builder": "^26.15.3",
     "electron-vite": "^3.1.0",
     "svelte": "^5.55.10",
     "svelte-check": "^4.4.5",
